@@ -1,4 +1,4 @@
-# Decathlon AR app developing with Svelte and Babylon.js
+# Valley Craft on Svelte and Babylon.js
 
 This project template incorporates [Svelte](https://svelte.dev) with [Babylon.js](https://www.babylonjs.com/).
 
