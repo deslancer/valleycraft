@@ -9,7 +9,7 @@ import { ShadowService } from "./services/shadow-service";
 import { MaterialsService } from "./services/materials-service";
 import { EnvironmentService } from "./services/environment-service";
 import { SetupMeshesService } from "./services/setup-meshes-service";
-import { global_scene, preloading } from './services/store';
+
 
 export const createScene = async ( canvas ) => {
 
@@ -22,53 +22,19 @@ export const createScene = async ( canvas ) => {
 	const lights: Array<any> = lightService.createDirectionalLights();
 	const shadowService = new ShadowService( lights )
 	const loaderService = new LoaderService(scene);
-	const setupMeshes = new SetupMeshesService(shadowService , loaderService, materialService );
 	const envService = new EnvironmentService( scene, materialService, loaderService );
 
 	scene.clearColor = new BABYLON.Color4( 1.0, 1.0, 1.0, 1.0 ).toLinearSpace();
 	cameraService.createPerspectiveCam();
 
-
-	preloading.update( () => {
-		return true;
-	} );
-
-	/*loaderService.loadModel( scene ).then( () => {
-		envService.createHDREnvironment().then( () => {
-			materialService.createBackgroundMaterial();
-			materialService.createGrassMaterial();
-			materialService.createGridMaterial();
-			materialService.createShadowOnlyMaterial();
-			materialService.setupExistsMaterials();
-
-			envService.createSkyBox();
-			envService.createGround();
-			envService.createGrid();
-
-			loaderService.loadBags(scene);
-		} )
-	} ).catch(error => {
-		console.log(error)
-	})*/
-
-
-	preloading.update( () => {
-		return false;
-	} );
-
 	loaderService.assetsManager.onProgress = function ( remainingCount, totalCount, lastFinishedTask ) {
 		engine.loadingUIText = 'We are loading the scene. ' + remainingCount + ' out of ' + totalCount + ' items still need to be loaded.';
 	};
 	loaderService.loadAll();
-	setupMeshes.setupShelterMesh(scene);
-	setupMeshes.setupDummies();
-	setupMeshes.setupBags();
-	materialService.createBackgroundMaterial();
-	materialService.createGrassMaterial();
+
 	materialService.createGridMaterial();
 	materialService.createShadowOnlyMaterial();
 	envService.createHDREnvironment()
-	envService.createSkyBox();
 	envService.createGround();
 	envService.createGrid();
 
@@ -91,8 +57,6 @@ export const createScene = async ( canvas ) => {
 			scene.render();
 		} );
 	};
-	global_scene.update( () => {
-		return scene;
-	} );
+
 	return scene;
 }
