@@ -23,8 +23,8 @@ export class CameraService {
 		camera.minZ = 0.1;
 		camera.target = new BABYLON.Vector3( 0, 0.8, 0 );
 		camera.upperBetaLimit = Math.PI / 2.2;
-		camera.lowerRadiusLimit = 5;
-		camera.upperRadiusLimit = 8;
+		camera.lowerRadiusLimit = 25;
+		camera.upperRadiusLimit = 80;
 
 		if (isDeviceMobile) {
 			camera.radius = 10;

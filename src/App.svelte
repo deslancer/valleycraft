@@ -11,6 +11,10 @@
     });
   });
 </script>
-
-<canvas bind:this={el} />
+<style>
+    canvas {
+        color: black;
+    }
+</style>
+<canvas bind:this={el}></canvas>
 
