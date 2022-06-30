@@ -13,8 +13,8 @@ export class MaterialsService implements IMaterialService{
 	createGridMaterial() {
 		let grid_material = new Materials.GridMaterial( "gridMaterial", this.scene );
 		grid_material.opacity = 0.99;
-		grid_material.mainColor = new BABYLON.Color3( 0.62, 0.62, 0.62 );
-		grid_material.lineColor = new BABYLON.Color3( 0.72, 0.72, 0.72 );
+		grid_material.mainColor = new BABYLON.Color3( 0.22, 0.22, 0.22 );
+		grid_material.lineColor = new BABYLON.Color3( 0.28, 0.28, 0.28 );
 		grid_material.gridOffset = new BABYLON.Vector3( 0.5, 0, 0 );
 		grid_material.gridRatio = 0.25;
 		grid_material.majorUnitFrequency = 5;

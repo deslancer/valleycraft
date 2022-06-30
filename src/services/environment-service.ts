@@ -1,6 +1,6 @@
 import * as BABYLON from 'babylonjs';
-import { ILoaderService } from "../interfaces/ILoaderService"
-import { MaterialsService } from './materials-service';
+import type { ILoaderService } from "../interfaces/ILoaderService"
+import type { MaterialsService } from './materials-service';
 
 export class EnvironmentService {
 	private readonly scene: any;
@@ -13,6 +13,7 @@ export class EnvironmentService {
 	}
 
 	createHDREnvironment(): void {
+		// @ts-ignore
 		this.loaderService.getEnvTextureTask().onSuccess = (task) => {
 			task.texture.setReflectionTextureMatrix(
 					BABYLON.Matrix.RotationY( 1.20 )
@@ -42,9 +43,8 @@ export class EnvironmentService {
 	}
 
 	createGrid() {
-		let grid = BABYLON.MeshBuilder.CreateDisc( "plane", {
-			radius: 15
-		}, this.scene );
+		let grid = BABYLON.Mesh.CreatePlane( 'ground', 1000, this.scene )
+		grid.rotation.x = Math.PI / 2;
 		grid.rotation.x = Math.PI / 2;
 		grid.position.y = -0.06;
 		grid.position.x = 0.5;

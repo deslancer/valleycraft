@@ -1,7 +1,7 @@
 import { Corner } from "./corner";
 
 export class CornerGenerator {
-    private corners: Array<Corner> = [];
+    private corners: Array<any> = [];
 
     constructor( baseData ) {
         this.generateCorners(baseData)
@@ -18,7 +18,10 @@ export class CornerGenerator {
         console.log(this.corners)
         console.groupEnd()
     }
-    getCorners() {
+    getCorners(is2D?) {
+        if(is2D){
+            this.corners.push(this.corners[0])
+        }
         return this.corners;
     }
 }
