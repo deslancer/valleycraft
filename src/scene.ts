@@ -39,7 +39,7 @@ export const createScene = async ( canvas ) => {
 
 	const eventService = new EventsService(scene);
 
-	eventService.addDot();
+	eventService.addLine();
 
 	const baseData = [-3, -2, -1, -4, 1,-4, 3, -2, 5, -2, 5, 1, 2, 1, 2, 3, -3, 3];
 
@@ -67,7 +67,7 @@ export const createScene = async ( canvas ) => {
 	const material = new BABYLON.StandardMaterial("", scene);
 	material.diffuseTexture = new BABYLON.Texture("http://i.imgur.com/88fOIk3.jpg", scene);
 	mesh.material = material;*/
-	cornerGenerator.getCorners().forEach((value)=>{
+	/*cornerGenerator.getCorners().forEach((value)=>{
 		const pointerDragBehavior = new BABYLON.PointerDragBehavior({dragPlaneNormal: new BABYLON.Vector3(0,1,0)});
 		pointerDragBehavior.useObjectOrientationForDragging = false;
 
@@ -77,12 +77,26 @@ export const createScene = async ( canvas ) => {
 		pointerDragBehavior.onDragObservable.add((event)=>{
 			//console.log(event);
 		})
-	})
+	})*/
 	loaderService.assetsManager.onFinish = () => {
 		engine.runRenderLoop( function () {
 			scene.render();
 		} );
 	};
-	//scene.debugLayer.show()
+	new BABYLON.AxesViewer(scene, 1.5);
+	document.onkeyup = function( e ) {
+		const evt = window.event || e;
+		//console.log(evt.keyCode);
+		// @ts-ignore
+		if ( evt.keyCode == 73 && evt.ctrlKey && evt.altKey ) {
+			if ( scene.debugLayer.isVisible() ) {
+				scene.debugLayer.hide();
+			} else {
+				scene.debugLayer.show( {
+					//globalRoot: document.body
+				} );
+			}
+		}
+	};
 	return scene;
 }
