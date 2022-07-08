@@ -86,7 +86,6 @@ export const createScene = async ( canvas ) => {
 	new BABYLON.AxesViewer(scene, 1.5);
 	document.onkeyup = function( e ) {
 		const evt = window.event || e;
-		//console.log(evt.keyCode);
 		// @ts-ignore
 		if ( evt.keyCode == 73 && evt.ctrlKey && evt.altKey ) {
 			if ( scene.debugLayer.isVisible() ) {
@@ -96,6 +95,14 @@ export const createScene = async ( canvas ) => {
 					//globalRoot: document.body
 				} );
 			}
+		}
+		// @ts-ignore
+		if ( evt.keyCode == 90 && evt.ctrlKey) {
+			eventService.undo();
+		}
+		// @ts-ignore
+		if ( evt.keyCode == 27) {
+			scene.onPointerMove = null;
 		}
 	};
 	return scene;
