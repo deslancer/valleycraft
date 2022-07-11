@@ -11,7 +11,7 @@ import { CornerGenerator } from "./services/building-generator/corner-generator"
 import { BuilderService } from "./services/building-generator/builder-service";
 import { EventsService } from "./services/events-service";
 import earcut from "earcut";
-import {coordinatesArr} from './store';
+import { coordinatesArr, global_scene } from './store';
 
 export const createScene = async ( canvas ) => {
 
@@ -38,8 +38,6 @@ export const createScene = async ( canvas ) => {
 /////////////////////////////////////////////////////////////////////
 
 	const eventService = new EventsService(scene);
-
-	eventService.addLine();
 
 	const baseData = [-3, -2, -1, -4, 1,-4, 3, -2, 5, -2, 5, 1, 2, 1, 2, 3, -3, 3];
 
@@ -84,26 +82,9 @@ export const createScene = async ( canvas ) => {
 		} );
 	};
 	new BABYLON.AxesViewer(scene, 1.5);
-	document.onkeyup = function( e ) {
-		const evt = window.event || e;
-		// @ts-ignore
-		if ( evt.keyCode == 73 && evt.ctrlKey && evt.altKey ) {
-			if ( scene.debugLayer.isVisible() ) {
-				scene.debugLayer.hide();
-			} else {
-				scene.debugLayer.show( {
-					//globalRoot: document.body
-				} );
-			}
-		}
-		// @ts-ignore
-		if ( evt.keyCode == 90 && evt.ctrlKey) {
-			eventService.undo();
-		}
-		// @ts-ignore
-		if ( evt.keyCode == 27) {
-			scene.onPointerMove = null;
-		}
-	};
+
+	global_scene.update(()=>{
+		return scene;
+	})
 	return scene;
 }
