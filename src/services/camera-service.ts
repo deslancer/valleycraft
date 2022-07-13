@@ -89,7 +89,7 @@ export class CameraService {
 			setTopBottomRatio(camera);
 		};
 		const ortho_camera = new BABYLON.ArcRotateCamera('ortho', 0, 0, 50, new BABYLON.Vector3(0, 50, 0), this.scene);
-
+		(ortho_camera.inputs.attached.pointers as BABYLON.ArcRotateCameraPointersInput).buttons = [0];
 		ortho_camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 		resetCameraZoom(ortho_camera);
 		this.scene.onPointerObservable.add(({ event }) => {

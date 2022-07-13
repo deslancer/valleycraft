@@ -17,6 +17,7 @@ export class EventsService {
 
     onPointerDown(){
         this.scene.onPointerDown = (evt) => {
+
             this.lineCreator.createLines();
             this.onClosingLine();
         }
