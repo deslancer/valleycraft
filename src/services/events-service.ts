@@ -30,6 +30,7 @@ export class EventsService {
     onClosingLine(){
         if(this.lineCreator.closedLines()){
             this.scene.onPointerMove = null;
+            this.scene.onPointerDown = null;
             this.polygonCreator.createPolygon(this.lineCreator.getLinePoints());
         }
     }
