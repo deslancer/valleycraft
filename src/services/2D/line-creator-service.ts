@@ -1,6 +1,6 @@
-
 import BABYLON from "babylonjs";
 import { GuideLinesService } from "./guide-lines-service";
+import { coordinatesArr } from "../../store";
 
 export class LineCreatorService {
     private scene;
@@ -8,13 +8,14 @@ export class LineCreatorService {
     private linePoints: Array<BABYLON.Vector3> = [];
     private dots = [];
     private positions;
-    private lastPoint = new BABYLON.Vector3(0,0,0);
+    private lastPoint = new BABYLON.Vector3( 0, 0, 0 );
     private guideLines: GuideLinesService;
     private crossX: boolean = false;
     private lineIsClosed: boolean = false;
-    constructor(scene) {
+
+    constructor( scene ) {
         this.scene = scene;
-        this.guideLines = new GuideLinesService(scene);
+        this.guideLines = new GuideLinesService( scene );
     }
 
     createLines() {
@@ -33,7 +34,9 @@ export class LineCreatorService {
             this.dots.push( dot );
             this.positions = this.lines.getVerticesData( BABYLON.VertexBuffer.PositionKind );
             this.lastPoint = pickedResult.pickedPoint;
-
+            coordinatesArr.update( () => {
+                return this.linePoints;
+            } )
         }
         return
     }
@@ -44,9 +47,9 @@ export class LineCreatorService {
         if ( pickedResult.hit && this.lines ) {
             let prev_x = this.positions[ this.positions.length - 6 ];
             let prev_z = this.positions[ this.positions.length - 4 ];
-            let firstPoint = this.linePoints[0];
+            let firstPoint = this.linePoints[ 0 ];
             let minDistance = 0.1;
-            let distFirstCurrent = BABYLON.Vector3.Distance(firstPoint, pickedResult.pickedPoint)
+            let distFirstCurrent = BABYLON.Vector3.Distance( firstPoint, pickedResult.pickedPoint )
 
             let prev_position = new BABYLON.Vector3(
                 this.positions[ this.positions.length - 6 ],
@@ -83,13 +86,13 @@ export class LineCreatorService {
             } else {
                 this.guideLines.getLineY().isVisible = false;
             }
-            if(distFirstCurrent <= minDistance && this.linePoints.length > 4){
+            if ( distFirstCurrent <= minDistance && this.linePoints.length > 4 ) {
                 this.positions[ this.positions.length - 1 ] = firstPoint.z;
                 this.positions[ this.positions.length - 2 ] = firstPoint.y;
                 this.positions[ this.positions.length - 3 ] = firstPoint.x;
                 this.lineIsClosed = true;
-                this.linePoints.push(firstPoint);
-            }else {
+                this.linePoints.push( firstPoint );
+            } else {
                 this.lineIsClosed = false;
             }
             this.lines.updateVerticesData( BABYLON.VertexBuffer.PositionKind, this.positions );
@@ -105,9 +108,11 @@ export class LineCreatorService {
         }
         return this
     }
-    closedLines(): boolean{
+
+    closedLines(): boolean {
         return this.lineIsClosed
     }
+
     deleteLines() {
 
     }
@@ -115,9 +120,11 @@ export class LineCreatorService {
     getLines() {
 
     }
-    getLinePoints(): Array<BABYLON.Vector3>{
+
+    getLinePoints(): Array<BABYLON.Vector3> {
         return this.linePoints
     }
+
     removeLastLine() {
         if ( this.lines && this.linePoints.length > 2 ) {
             this.lines.dispose();
