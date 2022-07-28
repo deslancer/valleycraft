@@ -52,5 +52,19 @@ export const createScene = async ( canvas ) => {
     global_scene.update( () => {
         return scene;
     } )
+    document.onkeyup = function ( e ) {
+        const evt = window.event || e;
+        //console.log(evt.keyCode);
+        // @ts-ignore
+        if ( evt.keyCode == 73 && evt.ctrlKey && evt.altKey ) {
+            if ( scene.debugLayer.isVisible() ) {
+                scene.debugLayer.hide();
+            } else {
+                scene.debugLayer.show( {
+                    globalRoot: document.body,
+                } );
+            }
+        }
+    };
     return scene;
 }
