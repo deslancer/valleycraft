@@ -20,7 +20,8 @@ export const createScene = async ( canvas ) => {
     lightService.createHemisphericLight();
     const loaderService = new LoaderService( scene );
     const envService = new EnvironmentService( scene, materialService, loaderService );
-    scene.clearColor = new BABYLON.Color4( 0.4, 0.4, 0.42, 1.0 ).toLinearSpace();
+    //scene.clearColor = new BABYLON.Color4( 0.4, 0.4, 0.42, 1.0 ).toLinearSpace();
+    scene.clearColor = new BABYLON.Color4( 1.0, 1.0, 1.0, 1.0 ).toLinearSpace();
     cameraService.createPerspectiveCam();
     cameraService.createOrthoCamera();
 

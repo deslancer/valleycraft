@@ -36,6 +36,7 @@ export class EventsService {
             this.scene.onPointerMove = null;
             this.scene.onPointerDown = null;
             this.polygonCreator.createPolygon( this.lineCreator.getLinePoints() );
+            this.lineCreator.deleteLines();
         }
     }
 

@@ -44,10 +44,7 @@ export class LineCreatorService {
                 points: this.linePoints,
                 updatable: true
             } );
-            let dot = BABYLON.MeshBuilder.CreateSphere( `dot`, { diameter: 0.1 } );
-            dot.position = pickedResult.pickedPoint;
-            this.dots.push( dot );
-
+            this.lines.color = new BABYLON.Color3( 0, 0, 0 );
             coordinatesArr.update( () => {
                 return this.linePoints;
             } )
@@ -77,7 +74,7 @@ export class LineCreatorService {
             }
             options.points[ this.linePoints.length - 1 ] = pickedResult.pickedPoint;
             this.lines = BABYLON.MeshBuilder.CreateLines( "lines", options );
-
+            this.lines.color = new BABYLON.Color3( 0, 0, 0 );
         }
         return this
     }
@@ -87,7 +84,7 @@ export class LineCreatorService {
     }
 
     deleteLines() {
-
+        this.lines.dispose();
     }
 
     getLines() {
