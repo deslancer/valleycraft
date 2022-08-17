@@ -10,7 +10,7 @@ export class PolygonCreatorService {
     }
 
     createPolygon( vectors: Array<BABYLON.Vector3> ) {
-        const line = this.createLine2D( "line", { path: vectors, width: 0.2, closed: true }, this.scene );
+        const line = this.createLine2D( "line", { path: vectors, width: 0.2, closed: false }, this.scene );
         line.material = new BABYLON.StandardMaterial( "line_material", this.scene );
         // @ts-ignore
         line.material.diffuseColor = BABYLON.Color3.Black();
@@ -102,8 +102,10 @@ export class PolygonCreatorService {
         var maxZ = Number.MIN_VALUE;
         var minZ = Number.MAX_VALUE;
 
+
         for ( let p = 0; p < nbPoints; p++ ) {
             positions.push( innerData[ p ].x, innerData[ p ].y, innerData[ p ].z );
+
             maxX = Math.max( innerData[ p ].x, maxX );
             minX = Math.min( innerData[ p ].x, minX );
             maxZ = Math.max( innerData[ p ].z, maxZ );
@@ -112,6 +114,7 @@ export class PolygonCreatorService {
 
         for ( let p = 0; p < nbPoints; p++ ) {
             positions.push( outerData[ p ].x, outerData[ p ].y, outerData[ p ].z );
+
             maxX = Math.max( innerData[ p ].x, maxX );
             minX = Math.min( innerData[ p ].x, minX );
             maxZ = Math.max( innerData[ p ].z, maxZ );
@@ -187,7 +190,6 @@ export class PolygonCreatorService {
 
         BABYLON.VertexData.ComputeNormals( positions, indices, normals );
         BABYLON.VertexData._ComputeSides( BABYLON.Mesh.DOUBLESIDE, positions, indices, normals, uvs );
-        console.log( uvs )
         //Create a custom mesh
         const customMesh = new BABYLON.Mesh( "line2D", scene );
 
@@ -202,6 +204,10 @@ export class PolygonCreatorService {
 
         //Apply vertexData to custom mesh
         vertexData.applyToMesh( customMesh );
+
+        const innerPos = positions.slice( 0, positions.length / 2 );
+        const outerPos = positions.slice( positions.length / 2, positions.length );
+
 
         return customMesh;
 

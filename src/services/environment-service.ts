@@ -43,7 +43,7 @@ export class EnvironmentService {
 	}
 
 	createGrid() {
-		let grid = BABYLON.Mesh.CreatePlane( 'ground', 1000, this.scene )
+		let grid = BABYLON.Mesh.CreatePlane( 'grid', 1000, this.scene )
 		grid.rotation.x = Math.PI / 2;
 		grid.rotation.x = Math.PI / 2;
 		grid.position.y = -0.06;

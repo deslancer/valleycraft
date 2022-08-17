@@ -8,6 +8,9 @@ import { EnvironmentService } from "./services/environment-service";
 import { EventsService } from "./services/events-service";
 import { BuildingCreatorService } from "./services/3D/building-creator-service";
 import { global_scene } from './store';
+import { LineCreatorService } from "./services/2D/line-creator-service";
+import hotkeys from 'hotkeys-js';
+import { GuideLinesService } from "./services/2D/guide-lines-service";
 
 export const createScene = async ( canvas ) => {
 
@@ -34,14 +37,12 @@ export const createScene = async ( canvas ) => {
     envService.createGrid();
 
 /////////////////////////////////////////////////////////////////////
-
-    const eventService = new EventsService( scene );
+    const guideLinesService = new GuideLinesService(scene);
+    const lineCreatorService = new LineCreatorService( scene, guideLinesService);
+    const eventService = new EventsService( scene, lineCreatorService );
     const buildingCreator = new BuildingCreatorService();
 
-    const baseData = [ -3, -2, -1, -4, 1, -4, 3, -2, 5, -2, 5, 1, 2, 1, 2, 3, -3, 3 ];
-
     scene.setActiveCameraByName( 'ortho' )
-    //buildingCreator.build( scene );
 
     loaderService.assetsManager.onFinish = () => {
         engine.runRenderLoop( function () {
@@ -53,19 +54,16 @@ export const createScene = async ( canvas ) => {
     global_scene.update( () => {
         return scene;
     } )
-    document.onkeyup = function ( e ) {
-        const evt = window.event || e;
-        //console.log(evt.keyCode);
-        // @ts-ignore
-        if ( evt.keyCode == 73 && evt.ctrlKey && evt.altKey ) {
-            if ( scene.debugLayer.isVisible() ) {
-                scene.debugLayer.hide();
-            } else {
-                scene.debugLayer.show( {
-                    globalRoot: document.body,
-                } );
-            }
+
+    hotkeys('ctrl+alt+i', function (event, handler){
+        if ( scene.debugLayer.isVisible() ) {
+            scene.debugLayer.hide();
+        } else {
+            scene.debugLayer.show( {
+                globalRoot: document.body,
+                overlay: true
+            } );
         }
-    };
+    });
     return scene;
 }

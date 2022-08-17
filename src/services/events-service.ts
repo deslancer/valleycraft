@@ -1,55 +1,56 @@
-import { LineCreatorService } from "./2D/line-creator-service";
 import { PolygonCreatorService } from "./2D/polygon-creator-service"
+import type { ILineCreateService } from "../interfaces/ILineCreateService";
+import hotkeys from 'hotkeys-js';
 
 export class EventsService {
     private scene;
-    private readonly lineCreator: LineCreatorService;
+    private readonly lineCreator: ILineCreateService;
     private readonly polygonCreator: PolygonCreatorService;
 
-    constructor( scene ) {
+    constructor( scene: any, lineCreator: ILineCreateService ) {
         this.scene = scene;
-        this.lineCreator = new LineCreatorService( scene );
+        this.lineCreator = lineCreator;
         this.polygonCreator = new PolygonCreatorService( scene );
         this.onPointerDown();
         this.onPointerMove();
         this.undo();
-
+        this.gridSnap();
     }
 
     onPointerDown() {
         this.scene.onPointerDown = ( evt ) => {
-
-            this.lineCreator.createLines();
+            this.lineCreator.create();
             this.onClosingLine();
         }
     }
 
     onPointerMove() {
         this.scene.onPointerMove = ( evt ) => {
-            this.lineCreator.updateLines();
+
+            this.lineCreator.update();
             this.onClosingLine();
+
         }
     }
 
     onClosingLine() {
-        if ( this.lineCreator.closedLines() ) {
+        if ( this.lineCreator.isClosed() ) {
             this.scene.onPointerMove = null;
             this.scene.onPointerDown = null;
-            this.polygonCreator.createPolygon( this.lineCreator.getLinePoints() );
-            this.lineCreator.deleteLines();
+            this.polygonCreator.createPolygon( this.lineCreator.getPoints() );
         }
     }
 
     undo() {
-        const lineCreator = this.lineCreator
-        document.onkeyup = function ( e ) {
-            const evt = window.event || e;
-            // @ts-ignore
-            if ( evt.keyCode == 90 && evt.ctrlKey ) {
-                lineCreator.removeLastLine();
-            }
-
-        };
+        hotkeys('ctrl+z', function (event, handler){
+           this.lineCreator.removeLastPoint()
+        }.bind(this));
     }
-
+    gridSnap(){
+        let state = true;
+        hotkeys('g', function (event, handler){
+            state =!state;
+            this.lineCreator.toggleGridSnap(state);
+        }.bind(this));
+    }
 }

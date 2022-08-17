@@ -1,101 +1,125 @@
-import BABYLON from "babylonjs";
-import { GuideLinesService } from "./guide-lines-service";
-import { coordinatesArr } from "../../store";
-import { LabelsService } from "./labels-service";
-import { SizeHelper } from "./size-helper";
-import { GeometryHelper } from "./geometry-helper";
+import type { ILineCreateService } from "../../interfaces/ILineCreateService";
+import type { IGuideLinesCreator } from "../../interfaces/IGuideLinesCreator";
+import * as BABYLON from "babylonjs";
+import { gridRatio } from "../../store";
 
-export class LineCreatorService {
-    private readonly scene;
+export class LineCreatorService implements ILineCreateService {
+    private isLineClosed: boolean;
     private lines;
     private linePoints: Array<BABYLON.Vector3> = [];
-    private dots = [];
-    private positions;
-    private lastPoint = null;
-    private guideLines: GuideLinesService;
-    private crossX: boolean = false;
-    private lineIsClosed: boolean = false;
-    private labelsService: LabelsService;
-    private sizeHelper: SizeHelper;
-    private geometryHelper: GeometryHelper;
-
-    constructor( scene ) {
+    private lineColor: BABYLON.Color3 = new BABYLON.Color3( 0, 0, 0 );
+    private readonly scene: any;
+    private isSnappedX: boolean = false;
+    private isSnappedZ: boolean = false;
+    private guideLines: IGuideLinesCreator;
+    snapDistance: number = 0.2;
+    isGridSnapEnabled: boolean = true;
+    constructor( scene, guideLines: IGuideLinesCreator ) {
         this.scene = scene;
-        this.guideLines = new GuideLinesService( scene );
-        this.labelsService = new LabelsService( this.scene );
-        this.sizeHelper = new SizeHelper();
-        this.geometryHelper = new GeometryHelper();
+        this.guideLines = guideLines;
     }
 
-    createLines() {
+    create(): object {
         const pickedResult = this.scene.pick( this.scene.pointerX, this.scene.pointerY );
         if ( this.lines ) {
             this.lines.dispose();
         }
         if ( pickedResult ) {
             let pickedPoint = pickedResult.pickedPoint;
-            if ( this.lastPoint && this.crossX ) {
-                console.log( this.lastPoint )
-                console.log( this.linePoints )
-                pickedPoint.x = this.lastPoint.x;
-            }
             this.linePoints.push( pickedPoint );
             this.lines = BABYLON.MeshBuilder.CreateLines( "lines", {
                 points: this.linePoints,
                 updatable: true
             } );
-            this.lines.color = new BABYLON.Color3( 0, 0, 0 );
-            coordinatesArr.update( () => {
-                return this.linePoints;
-            } )
-            this.lastPoint = pickedPoint;
-            this.positions = this.lines.getVerticesData( BABYLON.VertexBuffer.PositionKind );
+            this.lines.color = this.lineColor;
         }
-        return
+        if ( !this.guideLines.isGuidesExists() ) {
+            this.guideLines.createX();
+            this.guideLines.createY();
+        }
+
+        return this
     }
 
-    updateLines() {
+    update(): object {
         const pickedResult = this.scene.pick( this.scene.pointerX, this.scene.pointerY );
 
-        if ( pickedResult.hit && this.lines ) {
-            if ( this.linePoints.length < 2 ) {
+        if ( pickedResult.pickedPoint && this.lines ) {
+            if ( this.linePoints && this.linePoints.length < 2 ) {
                 this.linePoints.push( pickedResult.pickedPoint );
                 this.lines = BABYLON.MeshBuilder.CreateLines( "lines", {
                     points: this.linePoints,
                     updatable: true
                 } );
-            } else {
-                this.crossXDetect( pickedResult )
             }
-
             const options = {
                 points: this.linePoints,
                 instance: this.lines
             }
             options.points[ this.linePoints.length - 1 ] = pickedResult.pickedPoint;
+            const snapPointX = this.snapX( pickedResult.pickedPoint );
+            const snapPointZ = this.snapZ( pickedResult.pickedPoint );
+
+            this.closing( pickedResult.pickedPoint );
+            if ( snapPointX ) {
+                let guideXCoordinates = BABYLON.Vector3.Project( snapPointX,
+                    BABYLON.Matrix.Identity(),
+                    this.scene.getTransformMatrix(),
+                    this.scene.activeCamera.viewport.toGlobal(
+                        this.scene.getEngine().getRenderWidth(),
+                        this.scene.getEngine().getRenderHeight(),
+                    ) );
+                this.isSnappedX = true;
+                this.guideLines.showX();
+                this.guideLines.setPositionX( guideXCoordinates.x );
+                options.points[ this.linePoints.length - 1 ].x = snapPointX.x;
+            } else {
+                this.isSnappedX = false;
+                this.guideLines.hideX();
+            }
+            if ( snapPointZ ) {
+                let guideYCoordinates = BABYLON.Vector3.Project( snapPointZ,
+                    BABYLON.Matrix.Identity(),
+                    this.scene.getTransformMatrix(),
+                    this.scene.activeCamera.viewport.toGlobal(
+                        this.scene.getEngine().getRenderWidth(),
+                        this.scene.getEngine().getRenderHeight(),
+                    ) );
+                this.isSnappedZ = true;
+                this.guideLines.showY();
+                this.guideLines.setPositionY( guideYCoordinates.y );
+                options.points[ this.linePoints.length - 1 ].z = snapPointZ.z;
+            } else {
+                this.isSnappedZ = false;
+                this.guideLines.hideY();
+            }
+            if(this.isGridSnapEnabled){
+                const snapGridPoint = this.snapGrid(pickedResult.pickedPoint);
+                options.points[ this.linePoints.length - 1 ].x = snapGridPoint.x;
+                options.points[ this.linePoints.length - 1 ].z = snapGridPoint.y;
+            }
             this.lines = BABYLON.MeshBuilder.CreateLines( "lines", options );
             this.lines.color = new BABYLON.Color3( 0, 0, 0 );
+
+
         }
-        return this
+
+
+        return this;
     }
 
-    closedLines(): boolean {
-        return this.lineIsClosed
-    }
-
-    deleteLines() {
+    delete(): object {
         this.lines.dispose();
+        this.linePoints = [];
+        console.log( 'delete' )
+        return this;
     }
 
-    getLines() {
-
+    isClosed() {
+        return this.isLineClosed;
     }
 
-    getLinePoints(): Array<BABYLON.Vector3> {
-        return this.linePoints
-    }
-
-    removeLastLine() {
+    removeLastPoint(): object {
         if ( this.lines && this.linePoints.length > 2 ) {
             this.lines.dispose();
             this.linePoints.pop();
@@ -103,61 +127,77 @@ export class LineCreatorService {
                 points: this.linePoints,
                 updatable: true
             } );
+            this.lines.color = new BABYLON.Color3( 0, 0, 0 );
+        }
+        console.log( 'removed last point' )
+        return this;
+    }
 
-            this.dots[ this.dots.length - 1 ].dispose();
-            this.dots.pop();
-            this.positions = this.lines.getVerticesData( BABYLON.VertexBuffer.PositionKind );
+    getPoints(): Array<BABYLON.Vector3> {
+        console.log( ' getting line points' )
+        return this.linePoints;
+    }
+
+    setLineColor( color: BABYLON.Color3 ): object {
+        return this
+    }
+    toggleGridSnap(state){
+        this.isGridSnapEnabled = state;
+    }
+    private snapGrid(pickedPoint: BABYLON.Vector3){
+        let snapRatio;
+        gridRatio.subscribe((value)=> (snapRatio = value));
+        if(pickedPoint){
+            let snap_candidate_x = snapRatio * Math.round(pickedPoint.x/snapRatio);
+            let snap_candidate_z = snapRatio * Math.round(pickedPoint.z/snapRatio);
+            const snapPoint = {
+                x: 0,
+                y: 0
+            }
+            if (Math.abs(pickedPoint.x-snap_candidate_x) < 2) {
+                snapPoint.x = snap_candidate_x
+            }
+            if (Math.abs(pickedPoint.z-snap_candidate_z) < 2) {
+                snapPoint.y = snap_candidate_z
+            }
+            return snapPoint;
         }
 
     }
-
-    crossXDetect( pickedResult ) {
-        let prev_position = this.linePoints[ this.linePoints.length - 2 ];
-        let firstPoint = this.linePoints[ 0 ];
-        let minDistance = 0.1;
-        let distFirstCurrent = BABYLON.Vector3.Distance( firstPoint, pickedResult.pickedPoint )
-
-        let curr_x = pickedResult.pickedPoint.x;
-        let curr_z = pickedResult.pickedPoint.z;
-        let coordinates = BABYLON.Vector3.Project( prev_position,
-            BABYLON.Matrix.Identity(),
-            this.scene.getTransformMatrix(),
-            this.scene.activeCamera.viewport.toGlobal(
-                this.scene.getEngine().getRenderWidth(),
-                this.scene.getEngine().getRenderHeight(),
-            ) );
-
-
-        if ( curr_x > ( prev_position.x - 0.15 ) && curr_x < ( prev_position.x + 0.15 ) ) {
-            this.guideLines.getLineX().x1 = coordinates.x;
-            this.guideLines.getLineX().x2 = coordinates.x;
-            this.guideLines.getLineX().isVisible = true;
-            this.positions[ this.positions.length - 3 ] = prev_position.x;
-            this.crossX = true;
-        } else {
-            this.guideLines.getLineX().isVisible = false;
-            this.crossX = false;
+    private snapX( pickedPoint: BABYLON.Vector3 ) {
+        if ( pickedPoint ) {
+            const points = this.linePoints.slice( 0, this.linePoints.length - 1 );
+            const crossedVec = points.find( vec => vec.x > ( pickedPoint.x - this.snapDistance ) && vec.x < ( pickedPoint.x + this.snapDistance ) );
+            if ( crossedVec ) {
+                return crossedVec
+            }
         }
-        if ( curr_z > ( prev_position.z - 0.15 ) && curr_z < ( prev_position.z + 0.15 ) ) {
-            this.guideLines.getLineY().y1 = coordinates.y;
-            this.guideLines.getLineY().y2 = coordinates.y;
-            this.guideLines.getLineY().isVisible = true;
-            this.positions[ this.positions.length - 1 ] = prev_position.z;
-        } else {
-            this.guideLines.getLineY().isVisible = false;
-        }
-        ////////
-        if ( distFirstCurrent <= minDistance && this.linePoints.length > 4 ) {
-            this.linePoints[ this.linePoints.length - 1 ] = firstPoint;
-            this.lineIsClosed = true;
-            //console.log( this.sizeHelper.getFloorArea( this.linePoints ) );
-            const floorArea = this.sizeHelper.getFloorArea( this.linePoints );
-            const labelCenter = this.geometryHelper.getPolygonCenter( this.linePoints )
-
-            this.labelsService.createLabel( `${ this.sizeHelper.convertM2ToFT2( floorArea ) } ft²`, labelCenter )
-
-        } else {
-            this.lineIsClosed = false;
-        }
+        return null
     }
+
+    private snapZ( pickedPoint: BABYLON.Vector3 ) {
+        if ( pickedPoint ) {
+            const points = this.linePoints.slice( 0, this.linePoints.length - 1 );
+            const crossedVec = points.find( vec => vec.z > ( pickedPoint.z - this.snapDistance ) && vec.z < ( pickedPoint.z + this.snapDistance ) );
+            if ( crossedVec ) {
+                return crossedVec
+            }
+        }
+        return null
+    }
+
+    private closing( pickedPoint: BABYLON.Vector3 ): object {
+        const firstPoint = this.linePoints[ 0 ];
+        // if picked point is equal to first point BABYLON.Vector3.Distance returns an error
+        if ( !pickedPoint.equals( firstPoint ) ) {
+            const distance = BABYLON.Vector3.Distance( firstPoint, pickedPoint )
+            if ( distance <= this.snapDistance && this.linePoints.length > 4 ) {
+                this.isLineClosed = true;
+                this.guideLines.removeAll();
+            }
+        }
+
+        return this;
+    }
+
 }

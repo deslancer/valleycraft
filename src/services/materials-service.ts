@@ -1,6 +1,7 @@
 import * as BABYLON from 'babylonjs';
 import * as Materials from 'babylonjs-materials';
 import type { IMaterialService } from '../interfaces/IMaterialService';
+import { gridRatio } from "../store";
 
 export class MaterialsService implements IMaterialService {
     private readonly scene: any;
@@ -17,7 +18,8 @@ export class MaterialsService implements IMaterialService {
         grid_material.mainColor = new BABYLON.Color3( 0.72, 0.72, 0.72 );
         grid_material.mainColor = new BABYLON.Color3( 0.82, 0.82, 0.82 );
         grid_material.gridOffset = new BABYLON.Vector3( 0.5, 0, 0 );
-        grid_material.gridRatio = 0.5;
+        gridRatio.subscribe((value)=> (grid_material.gridRatio = value));
+
         grid_material.majorUnitFrequency = 1000;
         this.gridMat = grid_material;
     }
