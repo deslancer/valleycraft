@@ -1,11 +1,12 @@
 import type { ILineCreateService } from "../../interfaces/ILineCreateService";
 import type { IGuideLinesCreator } from "../../interfaces/IGuideLinesCreator";
 import * as BABYLON from "babylonjs";
-import { gridRatio } from "../../store";
+import { coordinatesArr, gridRatio } from "../../store";
 
 export class LineCreatorService implements ILineCreateService {
     private isLineClosed: boolean;
     private lines;
+    private helperLines;
     private linePoints: Array<BABYLON.Vector3> = [];
     private lineColor: BABYLON.Color3 = new BABYLON.Color3( 0, 0, 0 );
     private readonly scene: any;
@@ -13,7 +14,7 @@ export class LineCreatorService implements ILineCreateService {
     private isSnappedZ: boolean = false;
     private guideLines: IGuideLinesCreator;
     snapDistance: number = 0.2;
-    isGridSnapEnabled: boolean = true;
+    isGridSnapEnabled: boolean = false;
     constructor( scene, guideLines: IGuideLinesCreator ) {
         this.scene = scene;
         this.guideLines = guideLines;
@@ -32,12 +33,15 @@ export class LineCreatorService implements ILineCreateService {
                 updatable: true
             } );
             this.lines.color = this.lineColor;
+            this.createHelperLines();
         }
         if ( !this.guideLines.isGuidesExists() ) {
             this.guideLines.createX();
             this.guideLines.createY();
         }
-
+        coordinatesArr.update( () => {
+            return this.linePoints;
+        } )
         return this
     }
 
@@ -100,11 +104,7 @@ export class LineCreatorService implements ILineCreateService {
             }
             this.lines = BABYLON.MeshBuilder.CreateLines( "lines", options );
             this.lines.color = new BABYLON.Color3( 0, 0, 0 );
-
-
         }
-
-
         return this;
     }
 
@@ -199,5 +199,27 @@ export class LineCreatorService implements ILineCreateService {
 
         return this;
     }
+    private createHelperLines(){
+        let prevPoint;
+        if(this.linePoints.length === 1){
+            prevPoint = this.linePoints[0]
+        }else {
+            prevPoint = this.linePoints[this.linePoints.length - 2];
+        }
 
+        const nextPoint = this.linePoints[this.linePoints.length - 1];
+
+        const points = [
+            new BABYLON.Vector3(prevPoint.x, 0, prevPoint.z),
+            new BABYLON.Vector3(prevPoint.x, 0, prevPoint.z + 0.5)
+        ];
+        
+        const options = {
+            points: points,
+            updatable: true
+        }
+
+        this.helperLines = BABYLON.MeshBuilder.CreateLines("helper_line1", options);
+        this.helperLines.color = new BABYLON.Color3( 0, 0, 0 );
+    }
 }
